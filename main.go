@@ -38,11 +38,12 @@ func getBooks(w http.ResponseWriter, r *http.Request) {
 // get single book
 func getBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	parans := mux.Vars(r)
+
 	//  get paramas
+	params := mux.Vars(r)
 	// loop throgh books and find with id
 	for _, item := range books {
-		if item.ID == parans["id"] {
+		if item.ID == params["id"] {
 			json.NewEncoder(w).Encode(item)
 			return
 		}
@@ -99,7 +100,6 @@ func main() {
 	r := mux.NewRouter()
 
 	// moc Data
-
 	books = append(books, Book{ID: "1", Isbn: "448990", Title: "Book One", Author: &Author{
 		Firstname: "Hussein", Lastname: "Moahmed",
 	}})
@@ -111,7 +111,7 @@ func main() {
 	r.HandleFunc("/api/books", getBooks).Methods("GET")
 	r.HandleFunc("/api/books/{id}", getBook).Methods("GET")
 	r.HandleFunc("/api/books", createBook).Methods("POST")
-	r.HandleFunc("/api/books/{id}", updateBook).Methods("PUT")
+	r.HandleFunc("/api/book/{id}", updateBook).Methods("PUT")
 	r.HandleFunc("/api/books/{id}", deleteBook).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":9000", r))
