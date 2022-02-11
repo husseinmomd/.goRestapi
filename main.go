@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -22,33 +25,87 @@ type Author struct {
 	Lastname  string `json: "lastname"`
 }
 
+// init book var as a slice book struct
+
+var books []Book
+
 // get all book
 func getBooks(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(books)
 }
 
 // get single book
 func getBook(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
+	parans := mux.Vars(r)
+	//  get paramas
+	// loop throgh books and find with id
+	for _, item := range books {
+		if item.ID == parans["id"] {
+			json.NewEncoder(w).Encode(item)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(&Book{})
 }
 
 // create a new book
 func createBook(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var book Book
+	_ = json.NewDecoder(r.Body).Decode(&book)
+	book.ID = strconv.Itoa(rand.Intn(10000000)) // Mock Id random
+	books = append(books, book)
+	json.NewEncoder(w).Encode(book)
 
 }
 
 // update book
 func updateBook(w http.ResponseWriter, r *http.Request) {
 
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for index, item := range books {
+		if item.ID == params["id"] {
+			books = append(books[:index], books[index+1:]...)
+			var book Book
+			_ = json.NewDecoder(r.Body).Decode(&book)
+			// book.ID = strconv.Itoa(rand.Intn(10000000)) // Mock Id random
+			book.ID = params[{"id"}]
+			books = append(books, book)
+			json.NewEncoder(w).Encode(book)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(books)
 }
 
 // delete book
 func deleteBook(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for index, item := range books {
+		if item.ID == params["id"] {
+			books = append(books[:index], books[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(books)
 
 }
 func main() {
 	// init Router
 	r := mux.NewRouter()
+
+	// moc Data
+
+	books = append(books, Book{ID: "1", Isbn: "448990", Title: "Book One", Author: &Author{
+		Firstname: "Hussein", Lastname: "Moahmed",
+	}})
+	books = append(books, Book{ID: "2", Isbn: "449723", Title: "Book Two", Author: &Author{
+		Firstname: "Hassan", Lastname: "Moahmed",
+	}})
 
 	// route handlers / Endpoints
 	r.HandleFunc("/api/books", getBooks).Methods("GET")
